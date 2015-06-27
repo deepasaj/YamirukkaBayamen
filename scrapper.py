@@ -4,6 +4,8 @@ import code
 from pyquery import PyQuery
 from newspaper import Article
 import csv 
+import urllib
+import json
 
 result = {}
 crime_map = {}
@@ -38,11 +40,22 @@ def pruneDataSet():
 	with open('chennai.csv', 'rt') as csvfile:
 		spamreader = csv.reader(csvfile, delimiter=',')
 		for row in spamreader:
-			result[row[0]] = row[1]
+			result[row[0]] = getLatLong(row[0])
 
 def find_location(keywords):
 	for key in keywords:
 		if key in result:
 			return key
+
+def getLatLong(area):
+	api_key = 'AIzaSyDOjBGZEBvLCpHXkNvl-bBBxKHhzAeSaqU'
+	area = area.replace(" ", "%20")
+	url = 'https://maps.googleapis.com/maps/api/geocode/json?address='+area+'&key='+api_key
+	print("Area ==== " + area)
+	response = json.loads(urllib.request.urlopen(url).read().decode('utf-8'))
+	if len(response["results"]) > 0:
+		co_ord=response["results"][0]["geometry"]["location"]
+		latLong = str(co_ord["lat"]) + "," + str(co_ord["lng"])
+		print(area + " -------- " + latLong)
 
 run(host='localhost', port= 8080, debug=True)
