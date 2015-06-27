@@ -4,3 +4,6 @@ __pycache__/
 *.py[cod]
 
 .DS_Store
+
+.scrapper.py.swp
+.~lock.chennai.csv#
