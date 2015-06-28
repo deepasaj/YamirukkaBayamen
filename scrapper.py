@@ -6,16 +6,14 @@ from newspaper import Article
 import csv 
 import urllib
 import json
+import sys
+import pycps
 
 result = {}
 crime_map = {}
 start = "/url?q="
 end = "&"
-final = []
-
-@route('/hello')
-def hello():
-	return "Hi Sajani!"
+final1 = []
 
 @route('/all_sambavams')
 def crimes():
@@ -23,7 +21,15 @@ def crimes():
 	for i in range(0,11):
 		scrap(i*10)
 	print("=================================================")
-	print([x for x in final if x is not None])
+	groupByArea([x for x in final1 if x is not None])
+	print(crime_map)
+
+def groupByArea(final_crimes):
+	for crime in final_crimes:
+		if crime in crime_map:
+			crime_map[crime] += 1
+		else:
+			crime_map[crime] = 0
 
 def scrap(index):
 	base_url = "https://www.google.co.in/search?q=chennai%20accidents&tbm=nws&start="+str(index)
@@ -38,8 +44,8 @@ def scrap(index):
 			article.parse()
 			article.nlp()
 			keywords = article.keywords
-			area_name = find_location(keywords)
-			final.append(area_name)
+			area_name = findLocation(keywords)
+			final1.append(area_name)
 
 def pruneDataSet():
 	with open('chennai.csv', 'rt') as csvfile:
@@ -47,7 +53,7 @@ def pruneDataSet():
 		for row in spamreader:
 			result[row[0].lower()] = "dum"
 
-def find_location(keywords):
+def findLocation(keywords):
 	for key in keywords:
 		for res in result:
 			for word in res.split():
@@ -62,5 +68,9 @@ def getLatLong(area):
 	if len(response["results"]) > 0:
 		co_ord=response["results"][0]["geometry"]["location"]
 		latLong = str(co_ord["lat"]) + "," + str(co_ord["lng"])
+
+def exportData():
+	con = pycps.Connection('tcp://cloud-eu-0.clusterpoint.com:9007', 'Vibathu', 'deepasaj@thoughtworks.com', 'admin123', '100643')
+	con.insert(crime_map)
 
 run(host='localhost', port= 8080, debug=True)
